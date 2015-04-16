@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript" src="http://webrtc.github.io/samples/src/js/adapter.js"></script>
+<!--<script type="text/javascript" src="http://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>-->
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
+
+<style type="text/css">
+#localCanvas {
+  display: block;
+  width: 256px;
+  height: 256px;
+  border: 1px red solid;
+}
+
+#localVideo {
+  width: 256px;
+  height: 256px;
+}
+</style>
+
+</head>
+
+<body>
+<video id="video" width="256" height="256" autoplay style="display:none">
+  <source src="http://playground.html5rocks.com/samples/html5_misc/chrome_japan.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"' />
+</video>
+<script>
+
+init();
+render();
+
+function init() {
+  var WIDTH = 256;
+  var HEIGHT = 256;
+
+  var container;
+	var camera, scene, renderer;
+  var video, texture, material, mesh;
+	var composer;
+	
+	container = document.createElement( 'div' );
+	document.body.appendChild( container );
+
+  camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+	camera.position.z = 500;
+	
+  scene = new THREE.Scene();
+
+	var light = new THREE.DirectionalLight( 0xffffff );
+	light.position.set( 0.5, 1, 1 ).normalize();
+	scene.add( light );
+	
+  renderer = new THREE.WebGLRenderer();
+  renderer.setSize(WIDTH, HEIGHT);
+  container.appendChild( renderer.domElement );
+  
+  video = document.getElementById( 'video' );
+  texture = new THREE.VideoTexture( video );
+	texture.minFilter = THREE.LinearFilter;
+	texture.magFilter = THREE.LinearFilter;
+	texture.format = THREE.RGBFormat;
+	
+	var renderModel = new THREE.RenderPass( scene, camera );
+	
+	composer = new THREE.EffectComposer( renderer );
+	composer.addPass( renderModel );
+
+	/*
+  var vShader = $('2d-vertex-shader');
+  var fShader = $('2d-fragment-shader');
+  var shaderMaterial =
+    new THREE.ShaderMaterial({
+      vertexShader:   vShader.text(),
+      fragmentShader: fShader.text()
+    });
+  */
+}
+
+function render() {
+  requestAnimationFrame( render );
+  composer.render();
+}
+
+</script>
+
+<!-- vertex shader -->
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+
+uniform vec2 u_resolution;
+
+varying vec2 v_texCoord;
+
+void main() {
+   // convert the rectangle from pixels to 0.0 to 1.0
+   vec2 zeroToOne = a_position / u_resolution;
+
+   // convert from 0->1 to 0->2
+   vec2 zeroToTwo = zeroToOne * 2.0;
+
+   // convert from 0->2 to -1->+1 (clipspace)
+   vec2 clipSpace = zeroToTwo - 1.0;
+
+   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+
+   // pass the texCoord to the fragment shader
+   // The GPU will interpolate this value between points.
+   v_texCoord = a_texCoord;
+}
+</script>
+<!-- fragment shader -->
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+// our texture
+uniform sampler2D u_image;
+
+// the texCoords passed in from the vertex shader.
+varying vec2 v_texCoord;
+
+void main() {
+   gl_FragColor = texture2D(u_image, v_texCoord).bgra;
+}
+</script>
+</body>
+</html>

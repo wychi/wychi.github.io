@@ -1,99 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script type="text/javascript" src="http://webrtc.github.io/samples/src/js/adapter.js"></script>
-<!--<script type="text/javascript" src="http://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>-->
-<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.min.js"></script>
+<script type="text/javascript" src="js/adapter.js"></script>
 
-<script type="text/javascript" src="//raw.githubusercontent.com/mrdoob/three.js/master/examples/js/shaders/CopyShader.js"></script>
+<script type="text/javascript" src="js/shaders/ConvolutionShader.js"></script>
+<script type="text/javascript" src="js/shaders/CopyShader.js"></script>
+<script type="text/javascript" src="js/shaders/EdgeShader.js"></script>
 
-<script type="text/javascript" src="https://raw.githubusercontent.com/mrdoob/three.js/master/examples/js/postprocessing/EffectComposer.js"></script>
-
-<script type="text/javascript" src="//raw.githubusercontent.com/mrdoob/three.js/master/examples/js/postprocessing/RenderPass.js"></script>
-<script type="text/javascript" src="//raw.githubusercontent.com/mrdoob/three.js/master/examples/js/postprocessing/ShaderPass.js"></script>
-
-<style type="text/css">
-#localCanvas {
-  display: block;
-  width: 256px;
-  height: 256px;
-  border: 1px red solid;
-}
-
-#localVideo {
-  width: 256px;
-  height: 256px;
-}
-</style>
-
-</head>
-
-<body>
-<video id="video" width="256" height="256" autoplay style="display:none">
-  <source src="http://playground.html5rocks.com/samples/html5_misc/chrome_japan.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"' />
-</video>
-<script>
-
-init();
-render();
-
-function init() {
-  var WIDTH = 256;
-  var HEIGHT = 256;
-
-  var container;
-	var camera, scene, renderer;
-  var video, texture, material, mesh;
-	var composer;
-	
-	container = document.createElement( 'div' );
-	document.body.appendChild( container );
-
-  camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.z = 500;
-	
-  scene = new THREE.Scene();
-
-	var light = new THREE.DirectionalLight( 0xffffff );
-	light.position.set( 0.5, 1, 1 ).normalize();
-	scene.add( light );
-	
-  renderer = new THREE.WebGLRenderer();
-  renderer.setSize(WIDTH, HEIGHT);
-  container.appendChild( renderer.domElement );
-  
-  video = document.getElementById( 'video' );
-  texture = new THREE.VideoTexture( video );
-	texture.minFilter = THREE.LinearFilter;
-	texture.magFilter = THREE.LinearFilter;
-	texture.format = THREE.RGBFormat;
-	
-	var renderModel = new THREE.RenderPass( scene, camera );
-	var effectCopy = new THREE.ShaderPass( THREE.CopyShader );
-	effectCopy.renderToScreen = true;
-	
-	composer = new THREE.EffectComposer( renderer );
-	composer.addPass( renderModel );
-	composer.addPass( effectCopy );
-
-	/*
-  var vShader = $('2d-vertex-shader');
-  var fShader = $('2d-fragment-shader');
-  var shaderMaterial =
-    new THREE.ShaderMaterial({
-      vertexShader:   vShader.text(),
-      fragmentShader: fShader.text()
-    });
-  */
-}
-
-function render() {
-  requestAnimationFrame( render );
-  composer.render();
-}
-
-</script>
+<script type="text/javascript" src="js/postprocessing/EffectComposer.js"></script>
+<script type="text/javascript" src="js/postprocessing/RenderPass.js"></script>
+<script type="text/javascript" src="js/postprocessing/MaskPass.js"></script>
+<script type="text/javascript" src="js/postprocessing/BloomPass.js"></script>
+<script type="text/javascript" src="js/postprocessing/ShaderPass.js"></script>
 
 <!-- vertex shader -->
 <script id="2d-vertex-shader" type="x-shader/x-vertex">
@@ -135,5 +54,91 @@ void main() {
    gl_FragColor = texture2D(u_image, v_texCoord).bgra;
 }
 </script>
+
+</head>
+
+<body>
+<video id="video" autoplay style="display:none">
+  <source src="chrome_japan.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"' />
+</video>
+<script>
+var video = document.getElementById( 'video' );
+video.addEventListener("play", function() {
+  render();
+}, true);
+
+var WIDTH = 1280;
+var HEIGHT = 720;
+
+var container;
+var camera, scene, renderer;
+var texture, material, mesh;
+var composer;
+
+init();
+
+function init() {
+
+	container = document.createElement( 'div' );
+	document.body.appendChild( container );
+
+  camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
+	camera.position.z = 500;
+	
+  scene = new THREE.Scene();
+
+	var light = new THREE.DirectionalLight( 0xffffff );
+	light.position.set( 0.5, 1, 1 ).normalize();
+	scene.add( light );
+	
+  renderer = new THREE.WebGLRenderer();
+  renderer.setPixelRatio( window.devicePixelRatio );
+  renderer.setSize(WIDTH, HEIGHT);
+  //renderer.autoClear = false;
+  container.appendChild( renderer.domElement );
+  
+  texture = new THREE.VideoTexture( video );
+	texture.minFilter = THREE.LinearFilter;
+	texture.magFilter = THREE.LinearFilter;
+	texture.format = THREE.RGBFormat;
+
+	var geometry = new THREE.BoxGeometry( WIDTH/2, HEIGHT/2, 1 );
+	var parameters = { color: 0xffffff, map: texture };
+	material = new THREE.MeshLambertMaterial( parameters );
+	mesh = new THREE.Mesh( geometry, material );
+	scene.add( mesh );
+
+	var renderModel = new THREE.RenderPass( scene, camera );
+	var effectCopy = new THREE.ShaderPass( THREE.CopyShader );
+	effectCopy.renderToScreen = true;
+	var effectEdge = new THREE.ShaderPass( THREE.EdgeShader );
+	
+  var vShader = document.getElementById('2d-vertex-shader').innerHTML;
+  var fShader = document.getElementById('2d-fragment-shader').innerHTML;
+  var shaderMaterial =
+    new THREE.ShaderMaterial({
+      vertexShader:   vShader,
+      fragmentShader: fShader
+    });
+  var effectInvert = new THREE.ShaderPass( shaderMaterial );
+  
+	composer = new THREE.EffectComposer( renderer );
+	composer.addPass( renderModel );
+	// TODO add your own effect
+	composer.addPass( effectEdge );
+	//composer.addPass( effectInvert );
+	composer.addPass( effectCopy );
+
+}
+
+function render() {
+  if(video.ended == false)
+    requestAnimationFrame( render );
+  //renderer.clear();
+  composer.render();
+}
+
+</script>
+
 </body>
 </html>

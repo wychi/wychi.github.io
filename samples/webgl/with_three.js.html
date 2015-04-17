@@ -125,7 +125,7 @@ function init() {
 	texture.magFilter = THREE.LinearFilter;
 	texture.format = THREE.RGBFormat;
 
-	var geometry = new THREE.BoxGeometry( WIDTH/2, HEIGHT/2, 1 );
+	var geometry = new THREE.BoxGeometry( WIDTH, HEIGHT, 1 );
 	var parameters = { color: 0xffffff, map: texture };
 	material = new THREE.MeshLambertMaterial( parameters );
 	mesh = new THREE.Mesh( geometry, material );

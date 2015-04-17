@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-<script type="text/javascript" src="http://webrtc.github.io/samples/src/js/adapter.js"></script>
-<script type="text/javascript" src="http://webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
+<script type="text/javascript" src="//webrtc.github.io/samples/src/js/adapter.js"></script>
+<script type="text/javascript" src="//webglfundamentals.org/webgl/resources/webgl-utils.js"></script>
 
 
 <style type="text/css">
@@ -53,6 +53,8 @@ var onGotStream = function(stream) {
 var onFailedStream = function(error) {
   alert("Failed to get access to local media. Error code was " + error.code + ".");
   //trace_warning("Failed to get access to local media. Error code was " + error.code);
+  localVideo.src = 'chrome_japan.mp4';
+  setTimeout(poll, 2000);
 }
 
 var GL;
@@ -176,9 +178,6 @@ var testImage = function() {
 
 try {
   navigator.getUserMedia({video:true}, onGotStream, onFailedStream);
-
-
-
     //trace("Requested access to local media");
 } catch (e) {
   alert("getUserMedia error " + e);

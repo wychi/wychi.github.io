@@ -2,13 +2,13 @@
 THREE.CustomShader = {
 
 	uniforms: {
-		"tDiffuse": { type: "t", value: null },
+		"u_image": { type: "t", value: null },
 		"u_resolution":  { type: "v2", value: null }
 	},
 
-	"attributes": {
-		'a_position' : { type: "fv1", value: null },
-		'a_texCoord' : { type: "fv1", value: null }
+	attributes: {
+		'a_position' : { type: "f", value: null },
+		'a_texCoord' : { type: "f", value: null }
 	},
 
 	vertexShader: [

@@ -77,6 +77,7 @@ var composer;
 init();
 
 try {
+  console.log(onGotStream);
   navigator.getUserMedia({video:true}, onGotStream, onFailedStream);
     //trace("Requested access to local media");
 } catch (e) {
@@ -85,12 +86,12 @@ try {
   //trace_e(e, "getUserMedia error");
 }
 
-var onGotStream = function(stream) {
+function onGotStream(stream) {
   attachMediaStream(video, stream);
   //trace("User has granted access to local media. url = " + url);
 }
 
-var onFailedStream = function(error) {
+function onFailedStream(error) {
   alert("Failed to get access to local media. Error code was " + error.code + ".");
   //trace_warning("Failed to get access to local media. Error code was " + error.code);
 }

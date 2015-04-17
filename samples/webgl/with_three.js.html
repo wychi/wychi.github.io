@@ -61,20 +61,24 @@ void main() {
 <video id="video" autoplay style="display:none">
 </video>
 <script>
-var video = document.getElementById( 'video' );
-video.addEventListener("play", function() {
-  render();
-}, true);
-
-var WIDTH = 1280;
-var HEIGHT = 720;
+var WIDTH = 0;
+var HEIGHT = 0;
 
 var container;
 var camera, scene, renderer;
 var texture, material, mesh;
 var composer;
 
-init();
+var video = document.getElementById( 'video' );
+video.addEventListener("playing", function() {
+  console.log(video.videoWidth, video.videoHeight);
+  WIDTH = video.videoWidth;
+  HEIGHT = video.videoHeight;
+
+  init();
+  render();
+}, true);
+
 
 try {
   console.log(onGotStream);
@@ -158,8 +162,5 @@ function render() {
 }
 
 </script>
-
-
-
 </body>
 </html>

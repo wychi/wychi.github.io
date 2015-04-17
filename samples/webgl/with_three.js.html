@@ -7,6 +7,7 @@
 <script type="text/javascript" src="js/shaders/ConvolutionShader.js"></script>
 <script type="text/javascript" src="js/shaders/CopyShader.js"></script>
 <script type="text/javascript" src="js/shaders/EdgeShader.js"></script>
+<script type="text/javascript" src="js/shaders/CustomShader.js"></script>
 
 <script type="text/javascript" src="js/postprocessing/EffectComposer.js"></script>
 <script type="text/javascript" src="js/postprocessing/RenderPass.js"></script>
@@ -14,56 +15,23 @@
 <script type="text/javascript" src="js/postprocessing/BloomPass.js"></script>
 <script type="text/javascript" src="js/postprocessing/ShaderPass.js"></script>
 
-<!-- vertex shader -->
-<script id="2d-vertex-shader" type="x-shader/x-vertex">
-attribute vec2 a_position;
-attribute vec2 a_texCoord;
-
-uniform vec2 u_resolution;
-
-varying vec2 v_texCoord;
-
-void main() {
-   // convert the rectangle from pixels to 0.0 to 1.0
-   vec2 zeroToOne = a_position / u_resolution;
-
-   // convert from 0->1 to 0->2
-   vec2 zeroToTwo = zeroToOne * 2.0;
-
-   // convert from 0->2 to -1->+1 (clipspace)
-   vec2 clipSpace = zeroToTwo - 1.0;
-
-   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-
-   // pass the texCoord to the fragment shader
-   // The GPU will interpolate this value between points.
-   v_texCoord = a_texCoord;
+<style>
+#container {
+  width: 100vw;
+  height: 100vh;
 }
-</script>
-<!-- fragment shader -->
-<script id="2d-fragment-shader" type="x-shader/x-fragment">
-precision mediump float;
 
-// our texture
-uniform sampler2D u_image;
-
-// the texCoords passed in from the vertex shader.
-varying vec2 v_texCoord;
-
-void main() {
-   gl_FragColor = texture2D(u_image, v_texCoord).bgra;
-}
-</script>
-
+</style>
 </head>
 
 <body>
 <video id="video" autoplay style="display:none">
 </video>
-<script>
-var WIDTH = 0;
-var HEIGHT = 0;
 
+<div id="container">
+</div>
+
+<script>
 var container;
 var camera, scene, renderer;
 var texture, material, mesh;
@@ -71,6 +39,7 @@ var composer;
 
 var video = document.getElementById( 'video' );
 video.addEventListener("playing", function() {
+  console.log('playing');
   console.log(video.videoWidth, video.videoHeight);
   WIDTH = video.videoWidth;
   HEIGHT = video.videoHeight;
@@ -81,12 +50,13 @@ video.addEventListener("playing", function() {
 
 
 try {
-  console.log(onGotStream);
-  navigator.getUserMedia({video:true}, onGotStream, onFailedStream);
+  if(navigator.getUserMedia)
+    navigator.getUserMedia({video:true}, onGotStream, onFailedStream);
+  else
+    video.src = 'chrome_japan.mp4';
     //trace("Requested access to local media");
 } catch (e) {
   alert("getUserMedia error " + e);
-  video.src = 'chrome_japan.mp4';
   //trace_e(e, "getUserMedia error");
 }
 
@@ -97,26 +67,28 @@ function onGotStream(stream) {
 
 function onFailedStream(error) {
   alert("Failed to get access to local media. Error code was " + error.code + ".");
+  video.src = 'chrome_japan.mp4';
   //trace_warning("Failed to get access to local media. Error code was " + error.code);
 }
 
 function init() {
 
-	container = document.createElement( 'div' );
-	document.body.appendChild( container );
+	container = document.getElementById( 'container' );
+  var w = container.clientWidth - 20;
+  var h = container.clientHeight - 20;
+  console.log(w, h);
+  var vw = video.videoWidth;
+  var vh = video.videoHeight;
 
-  camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.z = 500;
-	
+  camera = new THREE.OrthographicCamera( w / - 2, w / 2, h / 2, h / - 2, 1, 1000 );
+	camera.position.x = 0;
+  camera.position.y = 0;
+  camera.position.z = 1000;
   scene = new THREE.Scene();
 
-	var light = new THREE.DirectionalLight( 0xffffff );
-	light.position.set( 0.5, 1, 1 ).normalize();
-	scene.add( light );
-	
   renderer = new THREE.WebGLRenderer();
   renderer.setPixelRatio( window.devicePixelRatio );
-  renderer.setSize(WIDTH, HEIGHT);
+  renderer.setSize(w, h);
   //renderer.autoClear = false;
   container.appendChild( renderer.domElement );
   
@@ -125,9 +97,9 @@ function init() {
 	texture.magFilter = THREE.LinearFilter;
 	texture.format = THREE.RGBFormat;
 
-	var geometry = new THREE.BoxGeometry( WIDTH, HEIGHT, 1 );
+	var geometry = new THREE.PlaneBufferGeometry(video.videoWidth, video.videoHeight);
 	var parameters = { color: 0xffffff, map: texture };
-	material = new THREE.MeshLambertMaterial( parameters );
+	material = new THREE.MeshBasicMaterial( parameters );
 	mesh = new THREE.Mesh( geometry, material );
 	scene.add( mesh );
 
@@ -135,23 +107,11 @@ function init() {
 	var effectCopy = new THREE.ShaderPass( THREE.CopyShader );
 	effectCopy.renderToScreen = true;
 	var effectEdge = new THREE.ShaderPass( THREE.EdgeShader );
-	
-  var vShader = document.getElementById('2d-vertex-shader').innerHTML;
-  var fShader = document.getElementById('2d-fragment-shader').innerHTML;
-  var shaderMaterial =
-    new THREE.ShaderMaterial({
-      vertexShader:   vShader,
-      fragmentShader: fShader
-    });
-  var effectInvert = new THREE.ShaderPass( shaderMaterial );
-  
+
 	composer = new THREE.EffectComposer( renderer );
 	composer.addPass( renderModel );
-	// TODO add your own effect
 	composer.addPass( effectEdge );
-	//composer.addPass( effectInvert );
 	composer.addPass( effectCopy );
-
 }
 
 function render() {

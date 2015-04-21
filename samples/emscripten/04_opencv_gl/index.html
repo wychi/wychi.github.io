@@ -82,8 +82,9 @@ function start() {
       navigator.getUserMedia({video:true}, onGotStream, onFailedStream);
     else {
       console.log('useVideo');
-      var video = useVideo();
-      video.src = 'chrome_japan.mp4'
+      useImage();
+      // var video = useVideo();
+      // video.src = 'chrome_japan.mp4'
     }
   } catch (e) {
     console.log("getUserMedia error " + e);
@@ -97,9 +98,9 @@ function start() {
 
   function onFailedStream(error) {
     console.log("Failed to get access to local media. Error code was " + error.code + ".");
-    //useImage();
-    var video = useVideo();
-    video.src = 'chrome_japan.mp4'
+    useImage();
+    // var video = useVideo();
+    // video.src = 'chrome_japan.mp4'
   }
 }
 

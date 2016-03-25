@@ -1,0 +1,77 @@
+<html>
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>CMS12345678909CMS12345678909CMS12345678909</title>
+</head>
+
+<body>
+<button onclick="doVibrate()">Vibrate</button>
+<button onclick="doGPS()">GPS</button>
+<button onclick="doCamera()">Camera</button>
+
+<h3>status</h3>
+<div id="status">
+</div>
+
+<h3>log</h3>
+<div id="demo">
+</div>
+
+<script>
+var statusDiv = document.getElementById("status");
+var x = document.getElementById("demo");
+
+var status = '';
+status += 'vibrate: ' + ((navigator.vibrate) ? '<font color="green">support</font>' : '<font color="red">not support</font>');
+status += '<br />';
+
+status += 'GPS: ' + ((navigator.geolocation) ? '<font color="green">support</font>' : '<font color="red">not support</font>');
+status += '<br />';
+
+status += 'Camera: ' + ((navigator.webkitGetUserMedia) ? '<font color="green">support</font>' : '<font color="red">not support</font>');
+status += '<br />';
+
+status += navigator.userAgent;
+status += '<br />';
+
+statusDiv.innerHTML = status;
+
+var errorCallback = function(err) {
+	x.innerHTML = "error:" + err;
+}
+
+function doVibrate() {
+	x.innerHTML = "doVibrate";
+	navigator.vibrate(200);
+}
+
+function doGPS() {
+	function showPosition(position) {
+	    x.innerHTML = "Latitude: " + position.coords.latitude + 
+	    "<br>Longitude: " + position.coords.longitude; 
+	}
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+}
+
+function doCamera() {
+	x.innerHTML = "invoke doCamera";
+
+	if (!navigator.webkitGetUserMedia) {
+		x.innerHTML = "camera (getUserMedia) is not supported by this browser.";
+	} else {
+		navigator.webkitGetUserMedia({video: true}, function(stream) {
+			x.innerHTML = "getUserMedia ok";
+		}, errorCallback);
+	}
+	// Not showing vendor prefixes or code that works cross-browser.
+}
+
+</script>
+
+</body>
+</html>
